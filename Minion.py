@@ -26,9 +26,9 @@ class Minion:
             results.put(self.result)
             self.tache = None
             self.result = None
-            print("ok")
 
     def workOnTask(self):
+        print("Start working on :", self.tache.identifier)
         self.tache.work()
         self.result = self.tache.x
 
