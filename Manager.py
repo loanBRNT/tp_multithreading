@@ -48,3 +48,7 @@ class QueueClient:
 
     def createTask(self, task):
         self.manager.addTask(task)
+
+
+if __name__ == "__main__":
+    queue = QueueClient()

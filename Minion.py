@@ -1,4 +1,6 @@
-from Manager.py import QueueClient
+import time
+
+from Manager import QueueClient
 
 
 class Minion:
@@ -17,9 +19,21 @@ class Minion:
         return False
 
     def taskEnded(self):
-        self.queue.taskEnded(self.result)
-        self.tache = None
+        if self.result is not None:
+            self.queue.taskEnded(self.result)
+            self.tache = None
+            self.result = None
+            print("ok")
 
     def workOnTask(self):
         self.tache.work()
         self.result = self.tache.x
+
+
+if __name__ == "__main__":
+    minion = Minion()
+    while 1:
+        time.sleep(2)
+        if minion.lookForATask():
+            minion.workOnTask()
+            minion.taskEnded()
