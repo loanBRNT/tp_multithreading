@@ -13,14 +13,17 @@ class Minion:
         self.tache = t
 
     def lookForATask(self):
-        if self.queue.taskAvailaible():
-            self.takeATask(self.queue.getATask())
+        queue = self.queue.getTask()
+        task = queue.get()
+        if task:
+            self.takeATask(task)
             return True
         return False
 
     def taskEnded(self):
         if self.result is not None:
-            self.queue.taskEnded(self.result)
+            results = self.queue.getResult()
+            results.put(self.result)
             self.tache = None
             self.result = None
             print("ok")

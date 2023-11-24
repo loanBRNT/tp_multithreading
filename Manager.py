@@ -1,54 +1,49 @@
-class QueueManager:
-    def __init__(self):
-        self.task_queue = []
-        self.result_queue = []
+#!/usr/bin/env python3
 
-    def getTaskQueue(self):
-        return self.task_queue
+import multiprocessing
+import os
+from multiprocessing.managers import BaseManager
 
-    def getResultQueue(self):
-        return self.result_queue
+PORT = 7481
+KEY = b"AiZa5Uavcoh3PiajvaeTee5z"  # keep it secret, keep it safe !
 
-    def getATask(self):
-        temp = None
-        if len(self.task_queue) > 0:
-            temp = self.task_queue[0]
-            self.task_queue.remove(0)
-        return temp
 
-    def addResult(self, result):
-        self.result_queue.append(result)
+class QueueManager(BaseManager):
+    """This Manager holds a Queue and waits for clients to use it."""
 
-    def addTask(self, task):
-        self.task_queue.append(task)
+    pass
 
 
 class QueueClient:
-    _instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super(QueueClient, cls).__new__(cls, *args, **kwargs)
-        return cls._instance
+    """Base class for users of the Queue."""
 
     def __init__(self):
-        self.manager = QueueManager()
+        QueueManager.register("get_tasks")
+        QueueManager.register("get_results")
+        manager = QueueManager(
+            address=(os.environ.get("MANAGER_HOST", "localhost"), PORT), authkey=KEY
+        )
+        manager.connect()
+        self.tasks = manager.get_tasks()
+        self.results = manager.get_results()
 
-    def taskAvailaible(self):
-        queue = self.manager.getTaskQueue
-        if len(queue) == 0:
-            return False
-        return True
+    def getTask(self):
+        return self.tasks
 
-    def getATask(self):
-        return self.manager.getATask()
-
-    def taskEnded(self, result):
-        self.manager.addResult(result)
-
-    def createTask(self, task):
-        self.manager.addTask(task)
+    def getResult(self):
+        return self.results
 
 
 if __name__ == "__main__":
-    queue = QueueClient()
+    task_queue = multiprocessing.Queue()
+    result_queue = multiprocessing.Queue()
+    QueueManager.register("get_tasks", callable=lambda: task_queue)
+    QueueManager.register("get_results", callable=lambda: result_queue)
+    try:
+        QueueManager(address=("", PORT), authkey=KEY).get_server().serve_forever()
+    finally:
+        print()
+        print(
+            f"exiting with approximately {task_queue.qsize()} items left in task queue"
+            f" and {result_queue.qsize()} items left in result queue."
+        )

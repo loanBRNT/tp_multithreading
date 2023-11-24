@@ -1,5 +1,5 @@
 from Manager import QueueClient
-from Task.py import Task
+from Task import Task
 
 
 class Boss(QueueClient):
@@ -7,10 +7,10 @@ class Boss(QueueClient):
         self.queue = QueueClient()
 
     def createTask(self, task):
-        self.queue.addTask(task)
+        self.queue.tasks.put(task)
 
 
 if __name__ == "__main__":
     b = Boss()
     t = Task("000")
-    b.createTask()
+    b.createTask(t)
